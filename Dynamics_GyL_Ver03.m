@@ -1,12 +1,12 @@
-function X_DOT = Dynamics_GyL_Ver02(STATE, CONTROL, Prop)
+function X_DOT = Dynamics_GyL_Ver03(STATE, CONTROL, Prop)
 
 MASS = Prop.MASS;
 g = Prop.g;
 J = Prop.J;
 Cn2b = Prop.Cn2b;
-l = Prop.l;
 k_F = Prop.k_F;
 k_M = Prop.k_M;
+l = Prop.l;
 
 P = STATE(1:3, 1);
 V = STATE(4:6, 1);
@@ -20,14 +20,14 @@ r = AngVel(3);
 w = CONTROL;
 
 Qmat = [0 -p -q -r;
-    p 0 r -q;
-    q -r 0 p;
-    r q -p 0];
+        p 0 r -q;
+        q -r 0 p;
+        r q -p 0];
 
-Rmat = [-k_F,             -k_F,             -k_F,            -k_F;
-         k_F * sqrt(2)/2, -k_F * sqrt(2)/2, -k_F * sqrt(2)/2, k_F * sqrt(2)/2; 
-        -k_F * sqrt(2)/2, -k_F * sqrt(2)/2,  k_F * sqrt(2)/2, k_F * sqrt(2)/2;
-         k_M,              k_M,             -k_M,            -k_M];
+Rmat = [-k_F,               -k_F,               -k_F,               -k_F;
+        -k_F * l / sqrt(2), -k_F * l / sqrt(2),  k_F * l / sqrt(2), k_F * l / sqrt(2); 
+         k_F * l / sqrt(2), -k_F * l / sqrt(2), -k_F * l / sqrt(2), k_F * l / sqrt(2);
+        +k_M,               -k_M,               +k_M,              -k_M];
 
 FMmatrix = Rmat * (w.^2);
 
@@ -48,4 +48,3 @@ Q_dot = 0.5*Qmat*Q;
 X_DOT = [Pos_dot; Vel_dot; AngVel_dot; Q_dot];
 
 end
-

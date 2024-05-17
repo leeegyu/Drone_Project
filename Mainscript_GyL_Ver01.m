@@ -1,4 +1,4 @@
-%% Flat-Earth 6-Dof Simulation + 4th RK
+%% Height Controller Ver01
 
 clc; clear all; close all;
 %% Initialization

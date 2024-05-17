@@ -1,4 +1,4 @@
-%% Flat-Earth 6-Dof Simulation + 4th RK
+%% Height Controller Ver02 + Dynamics_GyL_Ver02
 
 clc; clear all; close all;
 %% Initialization
@@ -9,18 +9,16 @@ dt = 0.1; % Time step
 Tf = 100; % Total simulation time
 
 g = [0 0 9.80665]';
-
-k_F = 0.1; % [N/(rad^2/s^2)] Thrust coefficient
-k_M = 7.8263*10^(-4); % [Nm/(rad^2/s^2)] Thrust coefficient
-max_throttle = 10;
-base_throttle = - max_throttle * 0.1291174078117;
-
 l = 0.062; % [m] dist. between CoM and rotor
 MASS  = 0.068; % [kg]
 Ix = 6.85*10^(-5);
 Iy = 9.2*10^(-5);
 Iz = 1.366*10^(-4);
 J = diag([Ix, Iy, Iz]);
+
+k_F = 0.01; % [N/(rad^2/s^2)] Thrust coefficient
+k_M = 7.8263*10^(-4); % [Nm/(rad^2/s^2)] Thrust coefficient
+base_throttle = - g(3) * MASS;
 
 w1 = 0;
 w2 = 0;
@@ -41,10 +39,6 @@ ki_alt = 0.01;
 kp_alt = 0.6;
 kd_alt = 0.4;
 
-D_err_alt = 0; 
-
-dt_gc = 0.1; % Time step for guidance and control unit.
-sampling_ratio = dt_gc/dt;
 
 P = zeros(3, Tf/dt + 1); % Pos. vec. in NED coord. sys.
 V = zeros(3, Tf/dt + 1); % Vel. vec. in body fixed coord. sys.
@@ -62,7 +56,7 @@ V0 = [0 0 0]';
 V(:,1) = V0;
 
 EA0 = [0 0 0]'*Deg2Rad;
-% EA(:,1) = EA0;
+EA(:,1) = EA0;
 
 q0 = cos(EA0(1)/2)*cos(EA0(2)/2)*cos(EA0(3)/2) + sin(EA0(1)/2)*sin(EA0(2)/2)*sin(EA0(3)/2);
 q1 = sin(EA0(1)/2)*cos(EA0(2)/2)*cos(EA0(3)/2) - cos(EA0(1)/2)*sin(EA0(2)/2)*sin(EA0(3)/2);
@@ -106,7 +100,7 @@ for m = 1 : Tf/dt
     H_sensor = P(3, m);
     
     %% Guidance
-    H_ref = -40;
+    H_ref = -100;
     H_err(1,m) = H_ref - H_sensor;
     
     %% Control for Altitude
@@ -146,10 +140,10 @@ for m = 1 : Tf/dt
     %% Numerical integration (dynamics, kinematics)
     STATE = [P(:,m); V(:,m); AngVel(:,m); Q(:,m)];
     
-    DEL_X_1 = Dynamics_GyL2(STATE,                 CONTROL, Prop)*dt;
-    DEL_X_2 = Dynamics_GyL2(STATE + (1/2)*DEL_X_1, CONTROL, Prop)*dt;
-    DEL_X_3 = Dynamics_GyL2(STATE + (1/2)*DEL_X_2, CONTROL, Prop)*dt;
-    DEL_X_4 = Dynamics_GyL2(STATE + DEL_X_3,       CONTROL, Prop)*dt;
+    DEL_X_1 = Dynamics_GyL_Ver02(STATE,                 CONTROL, Prop)*dt;
+    DEL_X_2 = Dynamics_GyL_Ver02(STATE + (1/2)*DEL_X_1, CONTROL, Prop)*dt;
+    DEL_X_3 = Dynamics_GyL_Ver02(STATE + (1/2)*DEL_X_2, CONTROL, Prop)*dt;
+    DEL_X_4 = Dynamics_GyL_Ver02(STATE + DEL_X_3,       CONTROL, Prop)*dt;
 
     STATE_AFTER = STATE + (1/6)*(DEL_X_1 + 2*DEL_X_2 + 2*DEL_X_3 + DEL_X_4); % 4-th RK
     
@@ -179,3 +173,19 @@ xlabel('Time[sec]')
 figure;
 plot(Realtime, H_err, 'b', 'LineWidth', LineWidth1);
 ylabel('H_err[m]')
+
+
+figure;
+subplot(4,1,1); grid on;
+plot(Realtime, w(1,:), 'b', 'LineWidth',LineWidth1);
+ylabel('w1(rad/s)')
+subplot(4,1,2); grid on;
+plot(Realtime, w(2,:), 'r', 'LineWidth',LineWidth1);
+ylabel('w2(rad/s)')
+subplot(4,1,3); grid on;
+plot(Realtime, w(3,:), 'r', 'LineWidth',LineWidth1);
+ylabel('w3(rad/s)')
+subplot(4,1,4); grid on;
+plot(Realtime, w(4,:), 'r', 'LineWidth',LineWidth1);
+ylabel('w4(rad/s)')
+xlabel('Time[sec]')
