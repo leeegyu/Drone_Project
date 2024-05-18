@@ -97,7 +97,6 @@ for m = 1 : Tf/dt
     end
 
     cmd_alt = kp_alt * Alt_err(m) + kd_alt * D_err_alt + ki_alt * I_err_alt;
-    
 
     store_cmd_alt(m) = cmd_alt;
     %% Main Control
@@ -185,3 +184,5 @@ ylabel('Z[m]');
 xlabel('Time[sec]');
 grid on;
 title('Altitude over Time');
+
+
